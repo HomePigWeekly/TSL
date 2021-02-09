@@ -16,6 +16,13 @@
         WinP2 = -2
     End Enum
 
+    Public Enum Directions As Integer
+        Left = 1
+        Right = -1
+        Up = 2
+        Down = -2
+    End Enum
+
     Private mState As States
     Private mapX, mapY As UInteger
     Private mP1, mP2 As Player
@@ -23,6 +30,10 @@
     Private mHLine, mVLine As Boolean(,)
 
     Private Sub PrepareMap(X As UInteger, Y As UInteger)
+        If X = 0 Or Y = 0 Then
+            Err().Raise(vbObjectError + 1000,, "Illegal Length")
+            Exit Sub
+        End If
         Me.mapX = X
         Me.mapY = Y
         ReDim Me.mArrivable(X, Y)
@@ -31,60 +42,45 @@
         ReDim Me.mVLine(X, Y)
     End Sub
 
+    Private Sub ClearBooleanArray2(Array As Boolean(,))
+        For i1 = 0 To Array.GetLength(1)
+            For i2 = 0 To Array.GetLength(2)
+                Array(i1, i2) = Nothing
+            Next
+        Next
+    End Sub
+
     Public Sub New()
         PrepareMap(5, 5)
-        Me.mP1 = New Player(0, 0)
-        Me.mP2 = New Player(4, 4)
     End Sub
 
     Public Sub New(ByVal Length As UInteger)
         PrepareMap(Length, Length)
-        Me.mP1 = New Player(0, 0)
-        Me.mP2 = New Player(Length - 1, Length - 1)
     End Sub
 
     Public Sub New(ByVal XLength As UInteger, ByVal YLength As UInteger)
         PrepareMap(XLength, YLength)
-        Me.mP1 = New Player(0, 0)
-        Me.mP2 = New Player(XLength - 1, YLength - 1)
     End Sub
 
-    Public Sub New(ByVal xP1 As UInteger, ByVal yP1 As UInteger, ByVal xP2 As UInteger, ByVal yP2 As UInteger)
-        PrepareMap(5, 5)
-        If xP1 >= 5 Or
-           xP2 >= 5 Or
-           yP1 >= 5 Or
-           yP2 >= 5 Then
-            Err().Raise(vbObjectError + 513,, "非法位置")
+    Public Sub Start(ByVal xP1 As UInteger, ByVal yP1 As UInteger,
+                     ByVal xP2 As UInteger, ByVal yP2 As UInteger)
+        If xP1 >= mapX Or xP2 >= mapX Or
+            yP1 >= mapY Or yP2 >= mapY Then
+            Err().Raise(vbObjectError + 1001,, "Illegal X or Y")
         End If
-        Me.mP1 = New Player(xP1, yP1)
-        Me.mP2 = New Player(xP2, yP2)
+        mP1 = New Player(xP1, yP1)
+        mP2 = New Player(xP2, yP2)
     End Sub
 
-    Public Sub New(ByVal Length As UInteger, ByVal xP1 As UInteger, ByVal yP1 As UInteger, ByVal xP2 As UInteger, ByVal yP2 As UInteger)
-        PrepareMap(Length, Length)
-        If xP1 >= Length Or
-           xP2 >= Length Or
-           yP1 >= Length Or
-           yP2 >= Length Then
-            Err().Raise(vbObjectError + 513,, "非法位置")
-        End If
-        Me.mP1 = New Player(xP1, yP1)
-        Me.mP2 = New Player(xP2, yP2)
+    Public Sub Clear()
+        mState = States.None
+        mP1 = Nothing
+        mP2 = Nothing
+        ClearBooleanArray2(mArrivable)
+        ClearBooleanArray2(mChecked)
+        ClearBooleanArray2(mHLine)
+        ClearBooleanArray2(mVLine)
     End Sub
-
-    Public Sub New(ByVal XLength As UInteger, ByVal YLength As UInteger, ByVal xP1 As UInteger, ByVal yP1 As UInteger, ByVal xP2 As UInteger, ByVal yP2 As UInteger)
-        PrepareMap(XLength, YLength)
-        If xP1 >= XLength Or
-           xP2 >= XLength Or
-           yP1 >= YLength Or
-           yP2 >= YLength Then
-            Err().Raise(vbObjectError + 513,, "非法位置")
-        End If
-        Me.mP1 = New Player(xP1, yP1)
-        Me.mP2 = New Player(xP2, yP2)
-    End Sub
-
 
     Public ReadOnly Property State As States
         Get
@@ -104,5 +100,15 @@
         End Get
     End Property
 
+    ReadOnly Property P1 As Player
+        Get
+            Return New Player(mP1.X, mP1.Y)
+        End Get
+    End Property
 
+    ReadOnly Property P2 As Player
+        Get
+            Return New Player(mP2.X, mP2.Y)
+        End Get
+    End Property
 End Class
