@@ -15,7 +15,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyCopyright("Copyright © Microsoft 2021")>
 <Assembly: AssemblyTrademark("")>
 
-<Assembly: ComVisible(False)>
+<Assembly: ComVisible(True)>
 
 '如果此项目向 COM 公开，则下列 GUID 用于 typelib 的 ID
 <Assembly: Guid("6220d51c-f532-42c1-a1a6-ad347bebb206")>
