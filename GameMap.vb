@@ -145,6 +145,14 @@
         End If
     End Function
 
+    Public Function BlockID2X(ByVal BlockID As UInteger) As UInt16
+        Return (BlockID - 1) Mod mapX
+    End Function
+
+    Public Function BlockID2Y(ByVal BlockID As UInteger) As UInt16
+        Return (BlockID - 1) \ mapX
+    End Function
+
     Public Sub New()
         PrepareMap(5, 5)
     End Sub
@@ -188,15 +196,21 @@
         End Get
     End Property
 
-    ReadOnly Property XLength
+    ReadOnly Property XLength As UInt16
         Get
             Return mapX
         End Get
     End Property
 
-    ReadOnly Property YLength
+    ReadOnly Property YLength As UInt16
         Get
             Return mapY
+        End Get
+    End Property
+
+    ReadOnly Property MaxBlockID As UInteger
+        Get
+            Return mapX * mapY
         End Get
     End Property
 
@@ -333,5 +347,74 @@
                 Return False
         End Select
         Return True
+    End Function
+
+    Public Function MoveTo(ByVal X As UInt16, ByVal Y As UInt16) As Boolean
+        If mState <> States.MoveP1 And mState = States.MoveP2 Then
+            Err().Raise(vbObjectError + 1003,, "Illegal Operate")
+        End If
+        If IsIllegalXY(X, Y) Then
+            Err().Raise(vbObjectError + 1001,, "Illegal X or Y")
+        End If
+        If mArrivable(X, Y) Then
+            If mState = States.MoveP1 Then
+                mP1.X = X
+                mP1.Y = Y
+            Else
+                mP2.X = X
+                mP2.Y = Y
+            End If
+            Return True
+        Else
+            Return False
+        End If
+    End Function
+
+    Public Function MoveTo(ByVal BlockID As UInteger) As Boolean
+        Return MoveTo(BlockID2X(BlockID), BlockID2Y(BlockID))
+    End Function
+
+    Public Function Line(ByVal Direction As Directions) As Boolean
+        Dim X As UInt16, Y As UInt16
+        Select Case mState
+            Case States.MoveP1
+                X = mP1.X
+                Y = mP1.Y
+            Case States.MoveP2
+                X = mP2.X
+                Y = mP2.Y
+            Case Else
+                Err().Raise(vbObjectError + 1003,, "Illegal Operate")
+                Return False
+        End Select
+        If IsLined(Direction, X, Y) Then
+            Return False
+        End If
+        Select Case Direction
+            Case Directions.Left
+                mVLine(X, Y) = True
+            Case Directions.Right
+                If X + 1 <> mapX Then
+                    mVLine(X + 1, Y) = True
+                End If
+            Case Directions.Up
+                mHLine(X, Y) = True
+            Case Directions.Down
+                If Y + 1 <> mapY Then
+                    mHLine(X, Y + 1) = True
+                End If
+            Case Else
+                Err().Raise(vbObjectError + 1002,, "Illegal Direction")
+                Return False
+        End Select
+        Return True
+    End Function
+
+    Public Function MoveToLine(ByVal Direction As Directions, ByVal X As UInt16, ByVal Y As UInt16) As Boolean
+        Return Not (IsLined(Direction, X, Y)) AndAlso MoveTo(X, Y) AndAlso Line(Direction)
+    End Function
+
+    Public Function MoveToLine(ByVal Direction As Directions, ByVal BlockID As UInteger) As Boolean
+        Return MoveToLine(Direction, BlockID2X(BlockID), BlockID2Y(BlockID))
     End Function
 End Class
